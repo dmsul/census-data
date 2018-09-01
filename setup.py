@@ -2,15 +2,18 @@ from setuptools import setup, find_packages
 
 
 def readme():
-    with open('README.md') as f:
-        return f.read()
+    try:
+        with open('README.md') as f:
+            return f.read()
+    except:
+        return ''
 
 
 # dependencies = []
     # 'numpy>=1.9.2',
     # 'pandas>=0.16.0',
 
-setup(name='project-name',
+setup(name='census-data',
       version='0.0.1',
       description='',
       # long_description=readme(),

@@ -8,7 +8,7 @@ if HOST in ('sullivan-7d', 'sullivan-10d'):
 else:
     data_root = r'\\Sullivan-10d\data'
 
-DATA_PATH = os.path.join(data_root, 'multisatpm')
+DATA_PATH = os.path.join(data_root, 'census')
 SRC_PATH = os.path.join(DATA_PATH, 'src')
 
 
