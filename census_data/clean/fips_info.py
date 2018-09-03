@@ -1,27 +1,49 @@
 import pandas as pd
 
-from econtools import load_or_build
-
 from util.env import src_path
 
-if __name__ == "__main__":
+
+def load_fips_cbsa():
     df = pd.read_csv(src_path('cbsa2fipsxw.csv'))
     df = df.drop(0, axis=0)
     df = df.drop(['metrodivisioncode'], axis=1)
 
     # Deal with metro/micro
-    tmp = df['metropolitanmicropolitanstatis'].value_counts()
-    assert tmp.sum() == df.shape[0]
-    assert len(tmp) == 2
-    df['micropolitan'] = (
-        df['metropolitanmicropolitanstatis'] ==
-        'Metropolitan Statistical Area')
-    df = df.drop('metropolitanmicropolitanstatis', axis=1)
+    df = _convert_binary(df,
+                         'metropolitanmicropolitanstatis',
+                         'Metropolitan Statistical Area',
+                         'micropolitan')
+    df = _convert_binary(df,
+                         'centraloutlyingcounty',
+                         'Outlying',
+                         'outlying_county')
 
     df = df.rename(columns={
         'cbsacode': 'cbsa',
         'cbsatitle': 'cbsa_name',
+        'countycountyequivalent': 'county_name',
+        'statename': 'state_name',
+        'fipsstatecode': 'state',
+        'fipscountycode': 'county',
     })
 
-    for col in ('cbsa',):
+    for col in ('cbsa', 'state', 'county'):
         df[col] = df[col].astype(int)
+
+    df['fips'] = (df['state'].astype(str).str.zfill(2) +
+                  df['county'].astype(str).str.zfill(3))
+
+    return df
+
+def _convert_binary(df, col, target, new_name):
+    tmp = df[col].value_counts()
+    assert tmp.sum() == df.shape[0]
+    assert len(tmp) == 2
+    df[new_name] = df[col] == target
+    assert df[new_name].sum() == tmp[target]
+    df = df.drop(col, axis=1)
+    return df
+
+
+if __name__ == "__main__":
+    df = load_fips_cbsa()
