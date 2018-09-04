@@ -1,10 +1,21 @@
+import os
+import urllib.request
 import pandas as pd
 
 from util.env import src_path
 
 
 def load_fips_cbsa():
-    df = pd.read_csv(src_path('cbsa2fipsxw.csv'))
+    # Read or download the src
+    filepath = src_path('cbsa2fipsxw.csv')
+    if not os.path.isfile(filepath):
+        url = (r'https://www.nber.org/cbsa-csa-fips-county-crosswalk/'
+               'cbsa2fipsxw.csv')
+        urllib.request.urlretrieve(url, filepath)
+    else:
+        pass
+    df = pd.read_csv(filepath)
+
     df = df.drop(0, axis=0)
     df = df.drop(['metrodivisioncode'], axis=1)
 
