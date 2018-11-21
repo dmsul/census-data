@@ -1,22 +1,51 @@
 import os
 import zipfile
-import simpledbf
 
 import pandas as pd
+import geopandas as gpd
+import simpledbf
 
 from census_data.util.env import src_path
 from census_data.util.ftp import ftp_connection, get_binary
 
 YEAR = 2012
-filename = f'tl_{YEAR}_us_county.zip'
-filepath = src_path('tigerline', 'COUNTY', f'{YEAR}', filename)
+zipname = f'tl_{YEAR}_us_county.zip'
+zippath = src_path('tigerline', 'COUNTY', f'{YEAR}', zipname)
+
+
+def county_shp() -> pd.DataFrame:
+    _check_for_files_on_disk()
+
+    df = gpd.read_file(zippath.replace('.zip', '.shp'))
+
+    df = _clean_county_info(df)
+
+    return df
 
 
 def county_info() -> pd.DataFrame:
-    dbf = simpledbf.Dbf5(
-        'd:/data/census/src/tigerline/COUNTY/2012/tl_2012_us_county.dbf',
-        codec='ISO-8859-1')
+    _check_for_files_on_disk()
+
+    # NOTE: UTF-8 fails for 2012
+    dbf = simpledbf.Dbf5(zippath.replace('.zip', '.dbf'),
+                         codec='ISO-8859-1')
     df = dbf.to_dataframe()
+
+    df = _clean_county_info(df)
+
+    return df
+
+
+def _check_for_files_on_disk():
+    if not os.path.isfile(zippath):
+        try:
+            unzip()
+        except OSError:
+            download()
+            unzip()
+
+
+def _clean_county_info(df: pd.DataFrame) -> pd.DataFrame:
     df = df.rename(columns=lambda x: x.lower())
     df = df.drop(['countyfp'], axis=1)
     df = df.rename(columns={'statefp': 'state_fips',
@@ -40,10 +69,9 @@ def download() -> None:
 
 
 def unzip() -> None:
-
-    root, __ = os.path.split(filepath)
-    with open(filepath, 'rb') as f:
-        print(f"Unzipping {filename}...", end='')
+    root, __ = os.path.split(zippath)
+    with open(zippath, 'rb') as f:
+        print(f"Unzipping {zipname}...", end='')
         z = zipfile.ZipFile(f)
         z.extractall(path=root)
         print("done.")
