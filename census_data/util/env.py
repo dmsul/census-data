@@ -3,7 +3,7 @@ import socket
 
 # Check which machine we're on
 HOST = socket.gethostname()
-if HOST in ('sullivan-7d', 'sullivan-10d', 'ThinkPad-PC'):
+if HOST in ('sullivan-7d', 'sullivan-10d', 'ThinkPad-PC', 'DESKTOP-HOME'):
     data_root = "D:\\data"
 else:
     data_root = r'\\Sullivan-10d\data'
