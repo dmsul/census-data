@@ -2,7 +2,7 @@ import os
 import urllib.request
 import pandas as pd
 
-from util.env import src_path
+from census_data.util.env import src_path
 
 
 def load_fips_cbsa():
