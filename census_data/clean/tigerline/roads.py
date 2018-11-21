@@ -9,7 +9,7 @@ from econtools import state_abbr_to_name, state_name_to_fips
 
 from census_data.util.env import src_path
 from census_data.util.ftp import ftp_connection, get_binary
-from census_data.clean.fips_info import load_fips_cbsa
+from census_data.clean.tigerline.county import county_info
 
 
 def read_year_state_roads(state_abbr: str, year: int) -> gpd.GeoDataFrame:
@@ -18,9 +18,9 @@ def read_year_state_roads(state_abbr: str, year: int) -> gpd.GeoDataFrame:
     return pd.concat(dfs, axis=0)
 
 def _get_states_fips_list(state_abbr: str) -> list:
-    state_name = state_abbr_to_name(state_abbr)
-    df = load_fips_cbsa()
-    return df.loc[df['state_name'] == state_name, 'fips'].unique().tolist()
+    state_fips = state_abbr_to_fips(state_abbr)
+    df = county_info()
+    return df.loc[df['state_fips'] == state_fips, 'fips'].unique().tolist()
 
 
 def read_year_county_roads(fips: str, year: int) -> gpd.GeoDataFrame:
@@ -86,4 +86,5 @@ def year_path_root(year: int) -> str:
 if __name__ == "__main__":
     year = 2012
     state_abbr = 'PA'
+    # batch_download_year_state(state_abbr, year)
     df = read_year_state_roads('PA', year)
