@@ -1,4 +1,24 @@
+import os
+import urllib.request as request
 import ftplib
+import zipfile
+
+
+def file_download(source_url: str, target_path: str) -> None:
+    print(f"Downloading {source_url}...", end='')
+    request.urlretrieve(source_url, target_path)
+    print('done!')
+
+
+def unzip_file(zippath, target_dir=None):
+    root, zipname = os.path.split(zippath)
+    with open(zippath, 'rb') as f:
+        print(f"Unzipping {zipname}...", end='')
+        z = zipfile.ZipFile(f)
+        if not target_dir:
+            target_dir = root
+        z.extractall(path=target_dir)
+        print("done.")
 
 
 def ftp_connection(year: int) -> ftplib.FTP:
