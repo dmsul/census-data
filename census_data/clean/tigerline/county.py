@@ -7,13 +7,10 @@ import simpledbf
 
 from census_data.util import src_path, ftp_connection, get_binary
 
-YEAR = 2012
-zipname = f'tl_{YEAR}_us_county.zip'
-zippath = src_path('tigerline', 'COUNTY', f'{YEAR}', zipname)
 
-
-def county_shp() -> pd.DataFrame:
-    check_for_files_on_disk()
+def county_shp(year: int) -> pd.DataFrame:
+    _check_for_files_on_disk(year)
+    zippath = zip_path(year)
 
     df = gpd.read_file(zippath.replace('.zip', '.shp'))
 
@@ -22,8 +19,9 @@ def county_shp() -> pd.DataFrame:
     return df
 
 
-def county_info() -> pd.DataFrame:
-    check_for_files_on_disk()
+def county_info(year: int) -> pd.DataFrame:
+    _check_for_files_on_disk(year)
+    zippath = zip_path(year)
 
     # NOTE: UTF-8 fails for 2012
     dbf = simpledbf.Dbf5(zippath.replace('.zip', '.dbf'),
@@ -35,13 +33,15 @@ def county_info() -> pd.DataFrame:
     return df
 
 
-def check_for_files_on_disk():
+# Aux functions
+def _check_for_files_on_disk(year: int) -> None:
+    zippath = zip_path(year)
     if not os.path.isfile(zippath):
         try:
-            unzip()
+            _unzip(year)
         except OSError:
-            download()
-            unzip()
+            _download(year)
+            _unzip(year)
 
 
 def _clean_county_info(df: pd.DataFrame) -> pd.DataFrame:
@@ -60,15 +60,17 @@ def _clean_county_info(df: pd.DataFrame) -> pd.DataFrame:
     return df
 
 
-def download() -> None:
-    ftp = ftp_connection(YEAR)
+def _download(year: int) -> None:
+    ftp = ftp_connection(year)
     ftp.cwd('COUNTY')
     fname = ftp.nlst()[0]
-    get_binary(fname, src_path('tigerline', 'COUNTY', f'{YEAR}', fname), ftp)
+    get_binary(fname, src_path('tigerline', 'COUNTY', f'{year}', fname), ftp)
+    ftp.close()
 
 
-def unzip() -> None:
-    root, __ = os.path.split(zippath)
+def _unzip(year: int) -> None:
+    zippath = zip_path(year)
+    root, zipname = os.path.split(zippath)
     with open(zippath, 'rb') as f:
         print(f"Unzipping {zipname}...", end='')
         z = zipfile.ZipFile(f)
@@ -76,5 +78,11 @@ def unzip() -> None:
         print("done.")
 
 
+def zip_path(year: int) -> str:
+    zipname = f'tl_{year}_us_county.zip'
+    zippath = src_path('tigerline', 'COUNTY', f'{year}', zipname)
+    return zippath
+
+
 if __name__ == "__main__":
-    df = county_info()
+    df = county_info(2012)

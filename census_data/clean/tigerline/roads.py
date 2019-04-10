@@ -26,6 +26,7 @@ def read_year_county_roads(fips: str, year: int) -> gpd.GeoDataFrame:
     return gpd.read_file(shp_path(year, fips))
 
 
+# Aux functions
 def batch_unzip_year_state(state_abbr: str, year: int) -> None:
     file_list = glob.glob(os.path.join(zip_path_root(year), '*'))
     state_list = restrict_filelist_to_state(file_list, state_abbr)

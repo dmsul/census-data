@@ -5,6 +5,7 @@ import pandas as pd
 from census_data.util.env import src_path
 
 
+# TODO: Replace this. It's incomplete in FIPS.
 def load_fips_cbsa():
     # Read or download the src
     filepath = src_path('cbsa2fipsxw.csv')
