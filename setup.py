@@ -9,22 +9,22 @@ def readme():
         return ''
 
 
-# dependencies = []
-    # 'numpy>=1.9.2',
-    # 'pandas>=0.16.0',
+dependencies = [
+]
 
-setup(name='census-data',
-      version='0.0.1',
-      description='',
-      # long_description=readme(),
-      # url=
-      author='Daniel M. Sullivan',
-      # author_email=
-      packages=find_packages(),
-      # install_requires=dependencies,
-      # tests_require=[ 'nose', ],
-      # include_package_data=True,        # To copy stuff in `MANIFEST.in`
-      # dependency_links=['http://
-      # zip_safe=False
-      # license='BSD'
-      )
+
+setup(
+    name='census-data',
+    version='0.0.1',
+    description='',
+    long_description=readme(),
+    author='Daniel M. Sullivan',
+    packages=find_packages(),
+    tests_require=[
+        'pytest',
+    ],
+    package_data={'census_data': ["py.typed"]},
+    install_requires=dependencies,
+    zip_safe=False,
+    license='BSD'
+)
