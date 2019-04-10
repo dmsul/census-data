@@ -7,8 +7,7 @@ import pandas as pd
 import geopandas as gpd
 from econtools import state_abbr_to_name, state_name_to_fips
 
-from census_data.util.env import src_path
-from census_data.util.ftp import ftp_connection, get_binary
+from census_data.util import src_path, ftp_connection, get_binary
 from census_data.clean.tigerline.county import county_info
 
 

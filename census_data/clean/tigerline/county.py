@@ -5,8 +5,7 @@ import pandas as pd
 import geopandas as gpd
 import simpledbf
 
-from census_data.util.env import src_path
-from census_data.util.ftp import ftp_connection, get_binary
+from census_data.util import src_path, ftp_connection, get_binary
 
 YEAR = 2012
 zipname = f'tl_{YEAR}_us_county.zip'
@@ -14,7 +13,7 @@ zippath = src_path('tigerline', 'COUNTY', f'{YEAR}', zipname)
 
 
 def county_shp() -> pd.DataFrame:
-    _check_for_files_on_disk()
+    check_for_files_on_disk()
 
     df = gpd.read_file(zippath.replace('.zip', '.shp'))
 
@@ -24,7 +23,7 @@ def county_shp() -> pd.DataFrame:
 
 
 def county_info() -> pd.DataFrame:
-    _check_for_files_on_disk()
+    check_for_files_on_disk()
 
     # NOTE: UTF-8 fails for 2012
     dbf = simpledbf.Dbf5(zippath.replace('.zip', '.dbf'),
@@ -36,7 +35,7 @@ def county_info() -> pd.DataFrame:
     return df
 
 
-def _check_for_files_on_disk():
+def check_for_files_on_disk():
     if not os.path.isfile(zippath):
         try:
             unzip()

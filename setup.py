@@ -1,30 +1,34 @@
 from setuptools import setup, find_packages
 
+from census_data.util.env import PROJECT_NAME
+
 
 def readme():
     try:
         with open('README.md') as f:
             return f.read()
-    except:
+    except IOError:
         return ''
 
 
-# dependencies = []
-    # 'numpy>=1.9.2',
-    # 'pandas>=0.16.0',
+dependencies: list = [
+]
 
-setup(name='census-data',
-      version='0.0.1',
-      description='',
-      # long_description=readme(),
-      # url=
-      author='Daniel M. Sullivan',
-      # author_email=
-      packages=find_packages(),
-      # install_requires=dependencies,
-      # tests_require=[ 'nose', ],
-      # include_package_data=True,        # To copy stuff in `MANIFEST.in`
-      # dependency_links=['http://
-      # zip_safe=False
-      # license='BSD'
-      )
+setup(
+    name=PROJECT_NAME,
+    version='0.0.1',
+    # url=
+    long_description=readme(),
+    description='Access and download Census data.',
+    author='Daniel M. Sullivan',
+    author_email='sullydm@gmail.com',
+    packages=find_packages(),
+    tests_require=[
+        'pytest',
+    ],
+    package_data={PROJECT_NAME.replace('-', '_'): ["py.typed"]},
+    # include_package_data=True,        # To copy stuff in `MANIFEST.in`
+    install_requires=dependencies,
+    zip_safe=False,
+    license='BSD'
+)

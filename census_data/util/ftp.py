@@ -10,7 +10,7 @@ def file_download(source_url: str, target_path: str) -> None:
     print('done!')
 
 
-def unzip_file(zippath, target_dir=None):
+def unzip_file(zippath: str, target_dir=None) -> None:
     root, zipname = os.path.split(zippath)
     with open(zippath, 'rb') as f:
         print(f"Unzipping {zipname}...", end='')
@@ -22,7 +22,7 @@ def unzip_file(zippath, target_dir=None):
 
 
 def ftp_connection(year: int) -> ftplib.FTP:
-    """ Establish FTP connection, navigate to MODIS 3K folder """
+    """ Establish FTP connection, navigate to `year` folder """
     FTP_DOMAIN = r'ftp2.census.gov'
     ftp = ftplib.FTP(FTP_DOMAIN)
     ftp.login()
