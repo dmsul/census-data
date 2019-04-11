@@ -1,4 +1,8 @@
 bg_2000 = {
+    'STATEA': 'state',
+    'COUNTYA': 'county',
+    'TRACTA': 'tract',
+    'BLCK_GRPA': 'block_group',
     'FXS001': 'pop',
     'FY4001': 'households',
     # Race (exclusive groups)

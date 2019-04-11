@@ -1,4 +1,8 @@
 bg_2005 = {
+    'STATEA': 'state',
+    'COUNTYA': 'county',
+    'TRACTA': 'tract',
+    'BLKGRPA': 'block_group',
     'RK9E001': 'pop',
     'RNGE001': 'households',
     # 'RKYE003': 'female',              # From population var
