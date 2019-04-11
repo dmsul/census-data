@@ -6,24 +6,11 @@ from census_data.util.env import data_path, src_path
 
 
 @load_or_build(data_path('bg_demogs_{year}.p'))
-def load_bgdata(year):
+def bg_demogs(year: int) -> pd.DataFrame:
 
     assert year in (2000, 2005)
     if year == 2000:
-        file1 = src_path('demographics', 'nhgis0020_ds152_2000_blck_grp.csv')
-        file2 = src_path('demographics', 'nhgis0020_ds147_2000_blck_grp.csv')
-        tmp1 = pd.read_csv(file1)
-        tmp2 = pd.read_csv(file2)
-        # Drop all duplicate columns except gisjoin
-        cols1 = set(tmp1.columns)
-        cols2 = set(tmp2.columns)
-        keep_set = cols1.symmetric_difference(cols2)
-        bg = ['STATEA', 'COUNTYA', 'TRACTA', 'BLCK_GRPA']
-        keep_cols1 = [x for x in tmp1.columns if x in keep_set]
-        keep_cols2 = [x for x in tmp2.columns if x in keep_set]
-        tmp1 = tmp1[['GISJOIN'] + bg + keep_cols1]
-        tmp2 = tmp2[['GISJOIN'] + keep_cols2]
-        rawdata = stata_merge(tmp1, tmp2, on='GISJOIN', assertval=3)
+        rawdata = _combine_two_2000_files()
     else:
         nhgis_path = src_path('demographics',
                               'nhgis0017_ds195_20095_2009_blck_grp.csv')
@@ -37,20 +24,51 @@ def load_bgdata(year):
     rawdata.rename(columns=lambda x: x.lower(), inplace=True)
     if year == 2000:
         rawdata.rename(columns={'blck_grpa': 'blkgrpa'}, inplace=True)
-        bg = ['statea', 'countya', 'tracta', 'blkgrpa']
-        data = rawdata[bg + list(new_names.values())].copy()
-    else:
-        bg = ['statea', 'countya', 'tracta', 'blkgrpa']
-        data = rawdata[bg + list(new_names.values())].copy()
+    bg = ['statea', 'countya', 'tracta', 'blkgrpa']
+    data = rawdata[bg + list(new_names.values())].copy()
 
-    # Fix weird stuff in data
     _fix_errata(data, year)
 
-    data['bg'] = data.apply(_gen_bgid, axis=1)
+    # Make BG ID
+    data['bg'] = (data['statea'].astype(str).str.zfill(2)
+                  + data['countya'].astype(str).str.zfill(3)
+                  + data['tracta'].astype(str).str.zfill(6)
+                  + data['blkgrpa'].astype(str))
+
     data.drop(bg, axis=1, inplace=True)
+
+    # Set year
     data['year'] = year
+
     data.set_index('bg', inplace=True)
+
     return data
+
+def _combine_two_2000_files() -> pd.DataFrame:
+    """
+    NHGIS outputs the 2000 Census in two files for some reason. Combine
+    them here.
+    """
+    file1 = src_path('demographics', 'nhgis0020_ds152_2000_blck_grp.csv')
+    file2 = src_path('demographics', 'nhgis0020_ds147_2000_blck_grp.csv')
+    tmp1 = pd.read_csv(file1)
+    tmp2 = pd.read_csv(file2)
+    # Drop all duplicate columns except gisjoin
+    cols1 = set(tmp1.columns)
+    cols2 = set(tmp2.columns)
+    keep_set = cols1.symmetric_difference(cols2)
+    bg = ['STATEA', 'COUNTYA', 'TRACTA', 'BLCK_GRPA']
+    keep_cols1 = [x for x in tmp1.columns if x in keep_set]
+    keep_cols2 = [x for x in tmp2.columns if x in keep_set]
+    tmp1 = tmp1[['GISJOIN'] + bg + keep_cols1]
+    tmp2 = tmp2[['GISJOIN'] + keep_cols2]
+    rawdata = stata_merge(tmp1, tmp2, on='GISJOIN', assertval=3)
+    return rawdata
+
+def _fix_errata(df: pd.DataFrame, year: int) -> None:
+    """ Should modify `df` in place. """
+    if year == 2005:
+        df['hunit'] = df['households'] + df['hunit_vacant']
 
 def _rename_dict(year):
     if year == 2000:
@@ -195,19 +213,6 @@ def _rename_dict(year):
             'RM8E035': 'female_ed_phd',
         }
     return new_names
-
-def _gen_bgid(x):
-    state = str(int(x['statea'])).zfill(2)
-    county = str(int(x['countya'])).zfill(3)
-    tract = str(int(x['tracta'])).zfill(6)
-    bg = int(x['blkgrpa'])
-    block_group_id = '{}{}{}{}'.format(state, county, tract, bg)
-    return block_group_id
-
-def _fix_errata(df, year):
-    """ Should modify `df` in place. """
-    if year == 2005:
-        df['hunit'] = df['households'] + df['hunit_vacant']
 
 
 if __name__ == '__main__':
