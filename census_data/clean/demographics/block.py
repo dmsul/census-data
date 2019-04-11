@@ -20,11 +20,12 @@ def blocks_population(year: int):
     return df
 
 
-@load_or_build(data_path('block_demogs.pkl'))
-def block_demogs():
+@load_or_build(data_path('block_demogs_{year}.pkl'))
+def block_demogs(year: int):
+    assert year == 2010
+
     csv_path = src_path('census', 'cross_sectional_data',
                         'nhgis_2010_block', 'nhgis0013_ds172_2010_block.csv')
-    year = 2010
     new_names = codebooks('block', year)
     columns = list(new_names.keys())
     df = pd.DataFrame()
@@ -33,10 +34,8 @@ def block_demogs():
         print('next chunk')
         chunk_df = chunk_df[columns]
         chunk_df = chunk_df.rename(columns=new_names)
-        chunk_df = chunk_df.rename(
-            columns=lambda x: x.lower().replace(' ', '_'))
-        chunk_df = _age_bins_block(chunk_df)
-        chunk_df = _cast_dtype_block(chunk_df)
+        chunk_df = _age_bins(chunk_df)
+        chunk_df = _cast_dtype(chunk_df)
         df = df.append(chunk_df)
         del chunk_df
 
@@ -59,45 +58,46 @@ def block_demogs():
 
     return df
 
-def _age_bins_block(df):
+def _age_bins(df):
+    """ Consolodate age bins to save memory """
     df['age_9'] = (
-        df[['age_{}_{}'.format(g, a)
+        df[[f'age_{g}_{a}'
             for g in ('male', 'female')
             for a in (4, 9)]].sum(axis=1))
     df['age_19'] = (
-        df[['age_{}_{}'.format(g, a)
+        df[[f'age_{g}_{a}'
             for g in ('male', 'female')
             for a in (14, 17, 19)]].sum(axis=1))
     df['age_29'] = (
-        df[['age_{}_{}'.format(g, a)
+        df[[f'age_{g}_{a}'
             for g in ('male', 'female')
             for a in (20, 21, 24, 29)]].sum(axis=1))
     df['age_39'] = (
-        df[['age_{}_{}'.format(g, a)
+        df[[f'age_{g}_{a}'
             for g in ('male', 'female')
             for a in (34, 39)]].sum(axis=1))
     df['age_49'] = (
-        df[['age_{}_{}'.format(g, a)
+        df[[f'age_{g}_{a}'
             for g in ('male', 'female')
             for a in (44, 49)]].sum(axis=1))
     df['age_59'] = (
-        df[['age_{}_{}'.format(g, a)
+        df[[f'age_{g}_{a}'
             for g in ('male', 'female')
             for a in (54, 59)]].sum(axis=1))
     df['age_69'] = (
-        df[['age_{}_{}'.format(g, a)
+        df[[f'age_{g}_{a}'
             for g in ('male', 'female')
             for a in (61, 64, 66, 69)]].sum(axis=1))
     df['age_79'] = (
-        df[['age_{}_{}'.format(g, a)
+        df[[f'age_{g}_{a}'
             for g in ('male', 'female')
             for a in (74, 79)]].sum(axis=1))
     df['age_80_over'] = (
-        df[['age_{}_{}'.format(g, a)
+        df[[f'age_{g}_{a}'
             for g in ('male', 'female')
             for a in (84, 99)]].sum(axis=1))
 
-    df = df.drop(['age_{}_{}'.format(g, a)
+    df = df.drop([f'age_{g}_{a}'
                   for g in ('male', 'female')
                   for a in (4, 9, 14, 17, 19, 20, 21, 24, 29, 34, 39, 44, 49,
                             54, 61, 64, 66, 69, 74, 79, 84, 99)
@@ -105,18 +105,21 @@ def _age_bins_block(df):
 
     return df
 
-def _cast_dtype_block(df):
-    cast_to_32 = ['tract']
-    for col in cast_to_32:
-        df[col] = df[col].astype(np.uint32)
-
-    cast_to_16 = [x for x in df.columns if x != 'tract']
-    for col in cast_to_16:
-        df[col] = df[col].astype(np.uint16)
-
+def _cast_dtype(df):
+    cast_to_32 = ('tract',)
     cast_to_8 = ('state', 'block_group')
-    for col in cast_to_8:
-        df[col] = df[col].astype(np.uint8)
+    cast_to_16 = tuple(
+        [x for x in df.columns if x not in cast_to_32 + cast_to_8]
+    )
+
+    cast_to = (
+        (cast_to_32, np.uint32),
+        (cast_to_16, np.uint16),
+        (cast_to_8, np.uint8),
+    )
+    for cast_list, dtype_target in cast_to:
+        for col in cast_list:
+            df[col] = df[col].astype(dtype_target)
 
     return df
 
