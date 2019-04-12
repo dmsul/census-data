@@ -1,14 +1,16 @@
 import os
 import socket
 
+PROJECT_NAME = 'census'
+
 # Check which machine we're on
 HOST = socket.gethostname()
-if HOST in ('sullivan-7d', 'sullivan-10d', 'ThinkPad-PC'):
+if HOST in ('sullivan-7d', 'sullivan-10d', 'ThinkPad-PC', 'DESKTOP-HOME'):
     data_root = "D:\\data"
 else:
-    data_root = r'\\Sullivan-10d\data'
+    data_root = "D:\\data"
 
-DATA_PATH = os.path.join(data_root, 'census')
+DATA_PATH = os.path.join(data_root, PROJECT_NAME)
 SRC_PATH = os.path.join(DATA_PATH, 'src')
 
 

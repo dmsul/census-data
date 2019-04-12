@@ -2,10 +2,11 @@ import os
 import urllib.request
 import pandas as pd
 
-from util.env import src_path
+from census_data.util.env import src_path
 
 
 def load_fips_cbsa():
+    """ NOTE: does not include all FIPS """
     # Read or download the src
     filepath = src_path('cbsa2fipsxw.csv')
     if not os.path.isfile(filepath):
