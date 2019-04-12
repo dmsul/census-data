@@ -2,7 +2,7 @@ import os
 import time
 import ftplib
 
-from econtools import state_fips as state_fips_list
+from econtools import state_fips_list
 
 from census_data.util import src_path, ftp_connection
 
@@ -12,7 +12,7 @@ SLEEP = 1
 def download_all_state_files() -> None:
     year = 2010
     ftp = wrap_ftp_connection(year)     # Use one ftp connection
-    str_fips = [str(fips).zfill(2) for fips in state_fips_list.keys()]
+    str_fips = [str(fips).zfill(2) for fips in state_fips_list]
 
     for state_fips in str_fips:
         ftp = download_state_shp(year, state_fips, ftp=ftp)

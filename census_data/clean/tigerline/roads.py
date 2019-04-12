@@ -12,13 +12,13 @@ from census_data.clean.tigerline.county import county_info
 
 
 def read_year_state_roads(state_abbr: str, year: int) -> gpd.GeoDataFrame:
-    fips_list = _get_states_fips_list(state_abbr)
+    fips_list = _get_states_fips_list(state_abbr, year)
     dfs = [read_year_county_roads(fips, year) for fips in fips_list]
     return pd.concat(dfs, axis=0)
 
-def _get_states_fips_list(state_abbr: str) -> list:
+def _get_states_fips_list(state_abbr: str, year: int) -> list:
     state_fips = state_abbr_to_fips(state_abbr)
-    df = county_info()
+    df = county_info(year)
     return df.loc[df['state_fips'] == state_fips, 'fips'].unique().tolist()
 
 

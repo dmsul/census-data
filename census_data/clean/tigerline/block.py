@@ -5,7 +5,7 @@ import simpledbf
 import numpy as np
 import pandas as pd
 import geopandas as gpd
-from econtools import load_or_build, state_fips as state_fips_list
+from econtools import load_or_build, state_fips_list
 
 from census_data.util import src_path, data_path
 
@@ -57,7 +57,7 @@ def _unzip_block_dbf(state_fips: str) -> None:
     print("Done.")
 
 
-def block_shape_state(state_fips: str) -> pd.DataFrame:
+def block_shape_state(state_fips: str) -> gpd.DataFrame:
     shp_path = _blocks_shape_path(state_fips)
     if not os.path.isfile(shp_path):
         _unzip_block_shp(state_fips)
