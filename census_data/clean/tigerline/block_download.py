@@ -2,40 +2,49 @@ import os
 import time
 import ftplib
 
+from econtools import state_fips as state_fips_list
+
 from census_data.util import src_path, ftp_connection
 
-
-# This is all just downloading the zip files
 SLEEP = 1
 
-def download_all_state_files() -> list:
+
+def download_all_state_files() -> None:
     year = 2010
-    ftp = wrap_ftp_connection(year)
-    state_files = _get_list_of_state_files(ftp)
+    ftp = wrap_ftp_connection(year)     # Use one ftp connection
+    str_fips = [str(fips).zfill(2) for fips in state_fips_list.keys()]
 
-    for fname in state_files:
-        target_path = files_target_path(year, fname)
-        # If target file already downloaded, skip
-        if os.path.exists(target_path):
-            continue
-        else:
-            print(f"Downloading {fname}...", end='', flush=True)
-            ftp = wrap_download(ftp, fname, target_path)
-
-    return state_files
-
-def _get_list_of_state_files(ftp) -> list:
-    all_files = ftp.nlst()
-    # Grab all the shorter (state- not county-level) filenames
-    state_files = [x for x in all_files if len(x) < 27]
-    return state_files
+    for state_fips in str_fips:
+        ftp = download_state_shp(year, state_fips, ftp=ftp)
 
 
-def download_state_shp(year: int, state_fips: int, ftp=None) -> None:
-    pass
+def download_state_shp(year: int, state_fips: str, ftp=None) -> ftplib.FTP:
+    """
+    Download the state's shape file. Can be used independently or in loop.
+    """
+    fname = _state_zip_filename(year, state_fips)
+    target_path = files_target_path(year, fname)
+    # If target file already downloaded, skip
+    if ftp is None:
+        ftp = wrap_ftp_connection(year)
 
+    if os.path.exists(target_path):
+        pass
+    else:
+        print(f"Downloading {fname}...", end='', flush=True)
+        ftp = _wrap_download(ftp, fname, target_path)
 
-def wrap_download(ftp, filename, target_path):
+    # return `ftp` for next loop iteration b/c `wrap_download` might reset it
+    return ftp
+
+def _state_zip_filename(year: int, fips: str) -> str:
+    """
+    This is not exactly right. First `year` is data vintage. Second `year` is
+    which census the data corresponds to.
+    """
+    return f'tl_{year}_{fips}_tabblock{str(year)[-2:]}.zip'
+
+def _wrap_download(ftp, filename, target_path):
     try:
         _get_binary(ftp, filename, target_path)
     except KeyboardInterrupt:
@@ -46,23 +55,21 @@ def wrap_download(ftp, filename, target_path):
     except StopIteration:
         print("Timeout! ", end='')
         ftp = _reset_ftp(ftp)
-        wrap_download(ftp, filename, target_path)
+        _wrap_download(ftp, filename, target_path)
     except (ftplib.error_reply, ftplib.error_temp, ConnectionResetError):
         print("Connection error! ", end='')
         ftp = _reset_ftp(ftp)
-        wrap_download(ftp, filename, target_path)
+        _wrap_download(ftp, filename, target_path)
     finally:
         time.sleep(SLEEP)
 
     return ftp
-
 
 def _reset_ftp(year, day, ftp):
     print('Reseting FTP connection...', end='')
     ftp.close()
     ftp = wrap_ftp_connection()
     return ftp
-
 
 def _get_binary(ftp, filename, target_path):
     with open(target_path, 'wb') as open_f:
@@ -83,4 +90,4 @@ def files_target_path(year: int, f_name: str) -> str:
 
 
 if __name__ == '__main__':
-    pass
+    download_all_state_files()
