@@ -1,7 +1,7 @@
 import os
 import socket
 
-PROJECT_NAME = 'census'
+PROJECT_NAME = 'data-census'
 
 # Check which machine we're on
 HOST = socket.gethostname()
