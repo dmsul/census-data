@@ -7,8 +7,8 @@ import pandas as pd
 import geopandas as gpd
 from econtools import state_abbr_to_name, state_name_to_fips
 
-from census_data.util import src_path, ftp_connection, get_binary
-from census_data.clean.tigerline.county import county_info
+from data_census.util import src_path, ftp_connection, get_binary
+from data_census.clean.tigerline.county import county_info
 
 
 def read_year_state_roads(state_abbr: str, year: int) -> gpd.GeoDataFrame:

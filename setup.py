@@ -1,6 +1,6 @@
 from setuptools import setup, find_packages
 
-from census_data.util.env import PROJECT_NAME
+from data_census.util.env import PROJECT_NAME
 
 
 def readme():

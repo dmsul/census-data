@@ -4,7 +4,7 @@ import ftplib
 
 from econtools import state_fips_list
 
-from census_data.util import src_path, ftp_connection
+from data_census.util import src_path, ftp_connection
 
 SLEEP = 1
 

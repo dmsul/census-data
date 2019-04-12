@@ -2,8 +2,8 @@ import pandas as pd
 import numpy as np
 from econtools import load_or_build
 
-from census_data.util.env import src_path, data_path
-from census_data.clean.demographics.codebooks import codebooks
+from data_census.util.env import src_path, data_path
+from data_census.clean.demographics.codebooks import codebooks
 
 
 @load_or_build(data_path('blocks_pop_{year}.pkl'))

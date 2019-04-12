@@ -5,7 +5,7 @@ import pandas as pd
 import geopandas as gpd
 import simpledbf
 
-from census_data.util import src_path, ftp_connection, get_binary
+from data_census.util import src_path, ftp_connection, get_binary
 
 
 def county_shp(year: int) -> pd.DataFrame:

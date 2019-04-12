@@ -6,7 +6,7 @@ import zipfile
 import geopandas as gpd
 from econtools import state_fips_list
 
-from census_data.util import src_path
+from data_census.util import src_path
 
 
 def tract_shape_df(state_fips: str) -> gpd.DataFrame:

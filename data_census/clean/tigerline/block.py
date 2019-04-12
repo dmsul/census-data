@@ -7,7 +7,7 @@ import pandas as pd
 import geopandas as gpd
 from econtools import load_or_build, state_fips_list
 
-from census_data.util import src_path, data_path
+from data_census.util import src_path, data_path
 
 
 # Block functions

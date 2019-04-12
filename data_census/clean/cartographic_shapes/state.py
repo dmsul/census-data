@@ -2,7 +2,7 @@ import os
 
 import geopandas as gpd
 
-from census_data.util import src_path, file_download, unzip_file
+from data_census.util import src_path, file_download, unzip_file
 
 RESOLUTIONS = ('500k', '5m', '20m')     # High-res to low-res
 VALID_YEARS = (1990, 2000, 2010, 2013, 2014, 2015, 2016)

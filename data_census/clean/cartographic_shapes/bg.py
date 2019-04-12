@@ -6,7 +6,7 @@ import zipfile
 import geopandas as gpd
 from econtools import state_fips_list
 
-from census_data.util.env import src_path
+from data_census.util.env import src_path
 
 
 def bg_shape_df(state_fips) -> gpd.DataFrame:

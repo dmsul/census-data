@@ -2,8 +2,8 @@ import pandas as pd
 
 from econtools import load_or_build, stata_merge
 
-from census_data.util.env import data_path, src_path
-from census_data.clean.demographics.codebooks import codebooks
+from data_census.util.env import data_path, src_path
+from data_census.clean.demographics.codebooks import codebooks
 
 
 # Block Group Level Cross Sectional Data
