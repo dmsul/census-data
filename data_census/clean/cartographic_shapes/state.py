@@ -4,6 +4,8 @@ import geopandas as gpd
 
 from data_census.util import src_path, file_download, unzip_file
 
+# TODO: This is close to generalized for everything beyond states 
+
 RESOLUTIONS = ('500k', '5m', '20m')     # High-res to low-res
 VALID_YEARS = (1990, 2000, 2010, 2013, 2014, 2015, 2016)
 
