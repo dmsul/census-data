@@ -11,26 +11,24 @@ def readme():
         return ''
 
 
-dependencies: list = [
-    'simpledbf',
-    'geopandas',
-]
+description = 'Access and download Census data.'
+
+dependencies = ['simpledbf', 'geopandas']
 
 setup(
     name=PROJECT_NAME,
     version='0.0.1',
-    # url=
+    description=description,
     long_description=readme(),
-    description='Access and download Census data.',
+    url=f'http://github.com/dmsul/{PROJECT_NAME}',
     author='Daniel M. Sullivan',
     author_email='sullydm@gmail.com',
     packages=find_packages(),
     tests_require=[
         'pytest',
     ],
-    package_data={PROJECT_NAME.replace('-', '_'): ["py.typed"]},
     # include_package_data=True,        # To copy stuff in `MANIFEST.in`
     # install_requires=dependencies,
+    package_data={PROJECT_NAME.replace('-', '_'): ["py.typed"]},
     zip_safe=False,
-    license='BSD'
 )
