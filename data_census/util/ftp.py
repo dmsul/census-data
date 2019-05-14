@@ -21,12 +21,12 @@ def unzip_file(zippath: str, target_dir=None) -> None:
         print("done.")
 
 
-def ftp_connection(year: int) -> ftplib.FTP:
+def ftp_connection(vintage: int) -> ftplib.FTP:
     """ Establish FTP connection, navigate to `year` folder """
     FTP_DOMAIN = r'ftp2.census.gov'
     ftp = ftplib.FTP(FTP_DOMAIN)
     ftp.login()
-    ftp.cwd(f'geo/tiger/TIGER{year}')
+    ftp.cwd(f'geo/tiger/TIGER{vintage}')
 
     return ftp
 
