@@ -33,34 +33,8 @@ def block_shape_info_state(state_fips: str,
     df = df.rename(columns=rename)
     df = df[list(rename.values())].copy().set_index('block_id')
 
-    # Leading + and - make these strings; fix that.
-    df[['x', 'y']] = df[['x', 'y']].astype(np.float32)
-    df['area'] = df['area'].astype(np.int32)    # compress
-
+    df = _recast_dtypes(df)
     return df
-
-def _parse_vintage(year: int, vintage: int=None) -> int:
-    if vintage is None:
-        vintage = 2010 if year == 2000 else 2010
-    elif year == 2000 and vintage != 2010:
-        raise ValueError
-
-    return vintage
-
-def _rename(year: int, vintage: int) -> dict:
-    year_suffix = str(year)[-2:]
-    if year == 2010:
-        block_id_name = f'GEOID{year_suffix}'
-    elif year == 2000:
-        block_id_name = f'BLKIDFP{year_suffix}'
-
-    rename = {
-        block_id_name: 'block_id',
-        f'INTPTLAT{year_suffix}': 'y',
-        f'INTPTLON{year_suffix}': 'x',
-        f'ALAND{year_suffix}': 'area',
-    }
-    return rename
 
 def _load_state_dbf(year: int, vintage: int, state_fips: str) -> pd.DataFrame:
     dbf_path = (_blocks_shape_path(year, vintage, state_fips)
@@ -83,13 +57,52 @@ def _unzip_block_dbf(year: int, vintage: int, state_fips: str) -> None:
     print("Done.")
 
 
-def block_shape_state(year: int,
-                      vintage: int,
-                      state_fips: str) -> gpd.GeoDataFrame:
-    shp_path = _blocks_shape_path(year, vintage, state_fips)
+def block_shape_state(state_fips: str,
+                      year: int,
+                      vintage: int=None
+                      ) -> gpd.GeoDataFrame:
+    set_vintage = _parse_vintage(year, vintage)
+    shp_path = _blocks_shape_path(year, set_vintage, state_fips)
     if not os.path.isfile(shp_path):
-        _unzip_block_shp(year, vintage, state_fips)
+        _unzip_block_shp(year, set_vintage, state_fips)
+
     df = gpd.read_file(shp_path)
+    df = df.rename(columns=_rename(year, set_vintage))
+    df = _recast_dtypes(df)
+
+    return df
+
+
+def _parse_vintage(year: int, vintage: int=None) -> int:
+    if vintage is None:
+        vintage = 2010 if year == 2000 else 2010
+    elif year == 2000 and vintage != 2010:
+        raise ValueError
+
+    return vintage
+
+
+def _rename(year: int, vintage: int) -> dict:
+    year_suffix = str(year)[-2:]
+    if year == 2010:
+        block_id_name = f'GEOID{year_suffix}'
+    elif year == 2000:
+        block_id_name = f'BLKIDFP{year_suffix}'
+
+    rename = {
+        block_id_name: 'block_id',
+        f'INTPTLAT{year_suffix}': 'y',
+        f'INTPTLON{year_suffix}': 'x',
+        f'ALAND{year_suffix}': 'area',
+    }
+    return rename
+
+
+def _recast_dtypes(df):
+    # Leading + and - make these strings; fix that.
+    df[['x', 'y']] = df[['x', 'y']].astype(np.float32)
+    df['area'] = df['area'].astype(np.int32)    # compress
+
     return df
 
 
@@ -108,6 +121,7 @@ def _blocks_shape_path(year: int, vintage: int, state_fips: str) -> str:
     filename = state_fileroot(year, vintage, state_fips) + '.shp'
     shp_path = src_path('tigerline', 'BLOCK', str(year), filename)
     return shp_path
+
 
 def _blocks_zip_path(year: int, vintage: int, state_fips: str) -> str:
     filename = state_fileroot(year, vintage, state_fips) + '.zip'
