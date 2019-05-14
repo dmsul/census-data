@@ -47,11 +47,7 @@ def _state_zip_filename(year: int, vintage: int, fips: str) -> str:
     This is not exactly right. First `year` is data vintage. Second `year` is
     which census the data corresponds to.
     """
-    if vintage in (2010, 2018):
-        filename = f'tl_{vintage}_{fips}_tabblock{str(year)[-2:]}.zip'
-    elif vintage in (2012,):
-        filename = f'tl_{vintage}_{fips}_tabblock.zip'
-    return filename
+    return state_fileroot(year, vintage, fips) + '.zip'
 
 def _wrap_download(ftp, filename, target_path):
     try:
@@ -94,6 +90,15 @@ def wrap_ftp_connection(year: int, vintage: int) -> ftplib.FTP:
         ftp.cwd(f'{year}')
 
     return ftp
+
+
+def state_fileroot(year: int, vintage: int, fips: str) -> str:
+    if vintage in (2010, 2018):
+        fileroot = f'tl_{vintage}_{fips}_tabblock{str(year)[-2:]}'
+    elif vintage in (2012,):
+        fileroot = f'tl_{vintage}_{fips}_tabblock'
+
+    return fileroot
 
 
 def files_target_path(year: int, f_name: str) -> str:

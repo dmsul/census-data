@@ -8,26 +8,28 @@ import geopandas as gpd
 from econtools import load_or_build, state_fips_list
 
 from data_census.util import src_path, data_path
+from data_census.clean.tigerline.block_download import state_fileroot
 
 
 # Block functions
-@load_or_build(data_path('block_shape_info.pkl'))
-def block_shape_info() -> pd.DataFrame:
-    dfs = [block_shape_info_state(state_fips)
+@load_or_build(data_path('block_shape_info_{year}.pkl'))
+def block_shape_info(year: int) -> pd.DataFrame:
+    dfs = [block_shape_info_state(str(state_fips).zfill(2), year)
            for state_fips in state_fips_list]
     df = pd.concat(dfs)
     return df
 
 
-@load_or_build(data_path('blocks_shape_info_{state_fips}.pkl'))
-def block_shape_info_state(state_fips: str) -> pd.DataFrame:
-    df = _load_state_dbf(state_fips)
-    rename = {
-        'GEOID10': 'block_id',
-        'INTPTLAT10': 'y',
-        'INTPTLON10': 'x',
-        'ALAND10': 'area',
-    }
+def block_shape_info_state(state_fips: str,
+                           year: int,
+                           vintage: int=None,
+                           ) -> pd.DataFrame:
+    """
+    Note: Last vintage for Census 2000 data is 2010.
+    """
+    set_vintage = _parse_vintage(year, vintage)
+    df = _load_state_dbf(year, set_vintage, state_fips)
+    rename = _rename(year, set_vintage)
     df = df.rename(columns=rename)
     df = df[list(rename.values())].copy().set_index('block_id')
 
@@ -37,18 +39,42 @@ def block_shape_info_state(state_fips: str) -> pd.DataFrame:
 
     return df
 
-def _load_state_dbf(state_fips: str) -> pd.DataFrame:
-    dbf_path = _blocks_shape_path(state_fips).replace('.shp', '.dbf')
+def _parse_vintage(year: int, vintage: int=None) -> int:
+    if vintage is None:
+        vintage = 2010 if year == 2000 else 2010
+    elif year == 2000 and vintage != 2010:
+        raise ValueError
+
+    return vintage
+
+def _rename(year: int, vintage: int) -> dict:
+    year_suffix = str(year)[-2:]
+    if year == 2010:
+        block_id_name = f'GEOID{year_suffix}'
+    elif year == 2000:
+        block_id_name = f'BLKIDFP{year_suffix}'
+
+    rename = {
+        block_id_name: 'block_id',
+        f'INTPTLAT{year_suffix}': 'y',
+        f'INTPTLON{year_suffix}': 'x',
+        f'ALAND{year_suffix}': 'area',
+    }
+    return rename
+
+def _load_state_dbf(year: int, vintage: int, state_fips: str) -> pd.DataFrame:
+    dbf_path = (_blocks_shape_path(year, vintage, state_fips)
+                .replace('.shp', '.dbf'))
     if not os.path.isfile(dbf_path):
-        _unzip_block_dbf(state_fips)
+        _unzip_block_dbf(year, vintage, state_fips)
     df = simpledbf.Dbf5(dbf_path).to_dataframe()
     return df
 
-def _unzip_block_dbf(state_fips: str) -> None:
+def _unzip_block_dbf(year: int, vintage: int, state_fips: str) -> None:
     print(f"Unzipping {state_fips} DBF only...", end='')
-    zip_path = _blocks_zip_path(state_fips)
+    zip_path = _blocks_zip_path(year, vintage, state_fips)
     zip_obj = zipfile.ZipFile(zip_path)
-    target_path = os.path.split(_blocks_zip_path(state_fips))[0]
+    target_path = os.path.split(zip_path)[0]
     for info in zip_obj.infolist():
         if info.filename.endswith('.dbf'):
             print("Found {info.filename}")
@@ -57,31 +83,33 @@ def _unzip_block_dbf(state_fips: str) -> None:
     print("Done.")
 
 
-def block_shape_state(state_fips: str) -> gpd.DataFrame:
-    shp_path = _blocks_shape_path(state_fips)
+def block_shape_state(year: int,
+                      vintage: int,
+                      state_fips: str) -> gpd.GeoDataFrame:
+    shp_path = _blocks_shape_path(year, vintage, state_fips)
     if not os.path.isfile(shp_path):
-        _unzip_block_shp(state_fips)
+        _unzip_block_shp(year, vintage, state_fips)
     df = gpd.read_file(shp_path)
     return df
 
 
-def _unzip_block_shp(state_fips):
+def _unzip_block_shp(year: int, vintage: int, state_fips: str) -> None:
     # needs to unzip all files in folder to load .shp later
-    zip_path = _blocks_zip_path(state_fips)
+    zip_path = _blocks_zip_path(year, vintage, state_fips)
     zip_ref = zipfile.ZipFile(zip_path)
-    zips_folder = os.path.split(_blocks_zip_path(state_fips))[0]
-    print(f"Unzipping state {state_fips} to\n{zips_folder}")
+    zips_folder = os.path.split(zip_path)[0]
+    print(f"Unzipping state {state_fips} to {zips_folder}", end='')
     zip_ref.extractall(zips_folder)
     zip_ref.close()
     print("Done.")
 
 
-def _blocks_shape_path(state_fips: str) -> str:
-    shp_path = src_path('census', 'shapefile_block',
-                        f'tl_2010_{state_fips}_tabblock10.shp')
+def _blocks_shape_path(year: int, vintage: int, state_fips: str) -> str:
+    filename = state_fileroot(year, vintage, state_fips) + '.shp'
+    shp_path = src_path('tigerline', 'BLOCK', str(year), filename)
     return shp_path
 
-def _blocks_zip_path(state_fips: str) -> str:
-    zip_path = src_path('census', 'shapefile_block',
-                        f'tl_2010_{state_fips}_tabblock10.zip')
+def _blocks_zip_path(year: int, vintage: int, state_fips: str) -> str:
+    filename = state_fileroot(year, vintage, state_fips) + '.zip'
+    zip_path = src_path('tigerline', 'BLOCK', str(year), filename)
     return zip_path
