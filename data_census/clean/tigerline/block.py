@@ -5,10 +5,11 @@ import simpledbf
 import numpy as np
 import pandas as pd
 import geopandas as gpd
-from econtools import load_or_build, state_fips_list
+from econtools import load_or_build, state_fips_list, confirmer
 
 from data_census.util import src_path, data_path
-from data_census.clean.tigerline.block_download import state_fileroot
+from data_census.clean.tigerline.block_download import (
+    state_fileroot, download_state_shp)
 
 
 # Block functions
@@ -109,12 +110,20 @@ def _recast_dtypes(df):
 def _unzip_block_shp(year: int, vintage: int, state_fips: str) -> None:
     # needs to unzip all files in folder to load .shp later
     zip_path = _blocks_zip_path(year, vintage, state_fips)
-    zip_ref = zipfile.ZipFile(zip_path)
+    try:
+        zip_ref = zipfile.ZipFile(zip_path)
+    except FileNotFoundError as e:
+        ans = confirmer(f"File {zip_path} not found. Download?")
+        if ans:
+            download_state_shp(year, vintage, state_fips)
+            zip_ref = zipfile.ZipFile(zip_path)
+        else:
+            raise e
     zips_folder = os.path.split(zip_path)[0]
     print(f"Unzipping state {state_fips} to {zips_folder}", end='')
     zip_ref.extractall(zips_folder)
     zip_ref.close()
-    print("Done.")
+    print(" Done.")
 
 
 def _blocks_shape_path(year: int, vintage: int, state_fips: str) -> str:
