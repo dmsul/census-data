@@ -4,3 +4,4 @@ from .clean.tigerline.county import county_info
 from .clean.tigerline.block import (
     block_shape_state, block_shape_info, block_shape_info_state,
 )
+from .clean.demographics.bg import blockgroup_demogs
