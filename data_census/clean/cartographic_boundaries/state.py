@@ -13,11 +13,11 @@ VALID_YEARS = (1990, 2000, 2010, 2013, 2014, 2015, 2016)
 def state_shape_df(year: int, resolution: str) -> gpd.GeoDataFrame:
     shp_path = carto_shapes_src_path(
         file_root(year, resolution, 'state', 'us'))
-    _download_if_needed(shp_path)
+    _download_if_needed(shp_path, year)
     df = gpd.read_file(shp_path)
     return df
 
-def _download_if_needed(shp_path: str) -> None:
+def _download_if_needed(shp_path: str, year: int) -> None:
     # Download and unzip, if necessary
     if not os.path.isfile(shp_path):
         zip_path = shp_path.replace('.shp', '.zip')
